@@ -534,29 +534,27 @@ function recalculate(){
   const G = ref.partido / 100;
   const H = ref.danado / 100;
 
-  const round4 = n => Math.round(n * 10000) / 10000;
+  const I = A - E;
+  const J = B - F;
+  const K = C - G;
+  const L = D - H;
 
-  const I = round4(A - E);
-  const J = round4(B - F);
-  const K = round4(C - G);
-  const L = round4(D - H);
+  const M = ref.extended ? Math.max(I, 0) : Math.max(I / (1 - E), 0);
+  const N = ref.extended ? Math.max(J, 0) : Math.max(J / (1 - F), 0);
+  const O = ref.extended ? Math.max(K / ref.partidoDivisor, 0) : Math.max(K / (1 - G), 0);
+  const P = ref.extended ? Math.max(L / ref.danadoDivisor, 0) : Math.max(L / (1 - H), 0);
 
-  const M = ref.extended ? Math.max(round4(I), 0) : Math.max(round4(I / (1 - E)), 0);
-  const N = ref.extended ? Math.max(round4(J), 0) : Math.max(round4(J / (1 - F)), 0);
-  const O = ref.extended ? Math.max(round4(K / ref.partidoDivisor), 0) : Math.max(round4(K / (1 - G)), 0);
-  const P = ref.extended ? Math.max(round4(L / ref.danadoDivisor), 0) : Math.max(round4(L / (1 - H)), 0);
-
-  let Q = round4(M + N + O + P);
+  let Q = M + N + O + P;
 
   let calorExcess = null, calorDisc = null, verdeExcess = null, verdeDisc = null, enfermoExcess = null, enfermoDisc = null;
   if (ref.extended){
-    calorExcess = round4(Calor - (ref.danadoCalor / 100));
-    verdeExcess = round4(Verde - (ref.verde / 100));
-    enfermoExcess = round4(Enfermo - (ref.enfermo / 100));
-    calorDisc = Math.max(round4(calorExcess / ref.danadoCalorDivisor), 0);
-    verdeDisc = Math.max(round4(verdeExcess / ref.verdeDivisor), 0);
-    enfermoDisc = Math.max(round4(enfermoExcess / ref.enfermoDivisor), 0);
-    Q = round4(Q + calorDisc + verdeDisc + enfermoDisc);
+    calorExcess = Calor - (ref.danadoCalor / 100);
+    verdeExcess = Verde - (ref.verde / 100);
+    enfermoExcess = Enfermo - (ref.enfermo / 100);
+    calorDisc = Math.max(calorExcess / ref.danadoCalorDivisor, 0);
+    verdeDisc = Math.max(verdeExcess / ref.verdeDivisor, 0);
+    enfermoDisc = Math.max(enfermoExcess / ref.enfermoDivisor, 0);
+    Q = Q + calorDisc + verdeDisc + enfermoDisc;
   }
 
   const T = R - S;
