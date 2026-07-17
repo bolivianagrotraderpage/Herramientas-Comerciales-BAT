@@ -267,7 +267,7 @@
   <h1>Precios agropecuarios — Bolivia</h1>
   <p>Calculadora de descuento por calidad de grano — Soya / Maíz / Sorgo</p>
   <nav class="page-nav">
-    <a href="comercial.html" class="active">Comercial</a>
+    <a href="index.html" class="active">Comercial</a>
     <a href="calc_peso.html">C. Peso</a>
   </nav>
 </header>
@@ -276,8 +276,8 @@
 
   <section>
     <span class="group-label">Comercial</span>
-    <h2>Descuento por humedad e impureza</h2>
-    <div class="sub">Calcula el peso líquido y el precio final a partir de la humedad e impureza registradas en boleta, según el grano. No usa datos de Google Sheets — todo el cálculo ocurre en esta página.</div>
+    <h2>Descuento por humedad, impureza, partidos y dañados</h2>
+    <div class="sub">Calcula el peso líquido y el precio final a partir de la humedad, impureza, partidos y dañados registrados en boleta, según el grano. No usa datos de Google Sheets — todo el cálculo ocurre en esta página.</div>
 
     <div class="grain-toggle" id="grainToggle">
       <button type="button" class="grain-btn" data-grain="soya">Soya</button>
@@ -294,7 +294,15 @@
         <div class="field">
           <label for="impurezaInput">Impureza registrada (%)</label>
           <input type="number" id="impurezaInput" min="0" max="100" step="0.01" placeholder="Ej. 5.30">
-          <div class="ref-note" id="refNote">Referencia (Sorgo): Humedad 14.00% · Impureza 1.00%</div>
+        </div>
+        <div class="field">
+          <label for="partidoInput">Partidos (%)</label>
+          <input type="number" id="partidoInput" min="0" max="100" step="0.01" placeholder="Ej. 16.00">
+        </div>
+        <div class="field">
+          <label for="danadoInput">Dañados (%)</label>
+          <input type="number" id="danadoInput" min="0" max="100" step="0.01" placeholder="Ej. 9.00">
+          <div class="ref-note" id="refNote">Referencia (Sorgo): Humedad 14.00% · Impureza 1.00% · Partidos 4.00% · Dañados 4.00%</div>
         </div>
         <div class="field">
           <label for="pesoInput">Peso neto (Kg)</label>
@@ -324,11 +332,17 @@
         <div class="breakdown">
           <div class="breakdown-row"><span class="k">Humedad de referencia (C)</span><span class="v" id="out-C">—</span></div>
           <div class="breakdown-row"><span class="k">Impureza de referencia (D)</span><span class="v" id="out-D">—</span></div>
+          <div class="breakdown-row"><span class="k">Partidos de referencia (P)</span><span class="v" id="out-P">—</span></div>
+          <div class="breakdown-row"><span class="k">Dañados de referencia (R)</span><span class="v" id="out-R">—</span></div>
           <div class="breakdown-row"><span class="k">Humedad en exceso (E)<span class="formula">A−C</span></span><span class="v" id="out-E">—</span></div>
           <div class="breakdown-row"><span class="k">Impureza en exceso (F)<span class="formula">B−D</span></span><span class="v" id="out-F">—</span></div>
+          <div class="breakdown-row"><span class="k">Partidos en exceso (S)<span class="formula">Partidos−P</span></span><span class="v" id="out-S">—</span></div>
+          <div class="breakdown-row"><span class="k">Dañado en exceso (T)<span class="formula">Dañados−R</span></span><span class="v" id="out-T">—</span></div>
           <div class="breakdown-row"><span class="k">Descuento por humedad (G)<span class="formula">E/(1−C), mín. 0%</span></span><span class="v" id="out-G">—</span></div>
           <div class="breakdown-row"><span class="k">Descuento por impureza (H)<span class="formula">F/(1−D), mín. 0%</span></span><span class="v" id="out-H">—</span></div>
-          <div class="breakdown-row"><span class="k">Descuento total (I)<span class="formula">G+H</span></span><span class="v" id="out-I">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento por partido (U)<span class="formula">S/(1−P), mín. 0%</span></span><span class="v" id="out-U">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento por dañado (V)<span class="formula">T/(1−R), mín. 0%</span></span><span class="v" id="out-V">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento total (I)<span class="formula">G+H+U+V</span></span><span class="v" id="out-I">—</span></div>
           <div class="breakdown-row"><span class="k">Descuento total Kg (K)<span class="formula">I×J</span></span><span class="v" id="out-K">—</span></div>
           <div class="breakdown-row"><span class="k">Peso líquido (L)<span class="formula">J−K</span></span><span class="v" id="out-L">—</span></div>
           <div class="breakdown-row"><span class="k" id="out-O-label">Peso líquido qq (O)<span class="formula">L/1000×21.74</span></span><span class="v" id="out-O">—</span></div>
@@ -340,21 +354,24 @@
 </main>
 
 <script>
-// Humedad/Impureza de referencia per grain — confirmed against real
-// examples (Sorgo 14%/1%, Soya 13%/1%, Maíz same as Sorgo 14%/1%).
+// Humedad/Impureza/Partidos/Dañados de referencia per grain — mismos
+// valores que la página C. Peso (Soya 13%/1%/15%/8%; Maíz y Sorgo
+// 14%/1%/4%/4%).
 // currency/unit: Soya se cotiza en USD por Tonelada Métrica (TM); Maíz y
 // Sorgo se quedan en Bolivianos por quintal (qq). kgToUnit convierte Kg al
 // unit final: TM = Kg/1000; qq = Kg/1000*21.74.
 const GRAIN_REFERENCES = {
-  soya:  { label: 'Soya',  humedad: 13, impureza: 1, currency: 'USD', unit: 'TM', kgToUnit: kg => kg / 1000 },
-  maiz:  { label: 'Maíz',  humedad: 14, impureza: 1, currency: 'Bs',  unit: 'qq', kgToUnit: kg => (kg / 1000) * 21.74 },
-  sorgo: { label: 'Sorgo', humedad: 14, impureza: 1, currency: 'Bs',  unit: 'qq', kgToUnit: kg => (kg / 1000) * 21.74 },
+  soya:  { label: 'Soya',  humedad: 13, impureza: 1, partido: 15, danado: 8, currency: 'USD', unit: 'TM', kgToUnit: kg => kg / 1000 },
+  maiz:  { label: 'Maíz',  humedad: 14, impureza: 1, partido: 4,  danado: 4, currency: 'Bs',  unit: 'qq', kgToUnit: kg => (kg / 1000) * 21.74 },
+  sorgo: { label: 'Sorgo', humedad: 14, impureza: 1, partido: 4,  danado: 4, currency: 'Bs',  unit: 'qq', kgToUnit: kg => (kg / 1000) * 21.74 },
 };
 
 let selectedGrain = 'sorgo';
 
 const humedadInput = document.getElementById('humedadInput');
 const impurezaInput = document.getElementById('impurezaInput');
+const partidoInput = document.getElementById('partidoInput');
+const danadoInput = document.getElementById('danadoInput');
 const pesoInput = document.getElementById('pesoInput');
 const precioInput = document.getElementById('precioInput');
 const refNote = document.getElementById('refNote');
@@ -381,7 +398,7 @@ grainToggle.querySelectorAll('.grain-btn').forEach(btn => {
 
 function updateRefNote(){
   const ref = GRAIN_REFERENCES[selectedGrain];
-  refNote.textContent = `Referencia (${ref.label}): Humedad ${fmt(ref.humedad)}% · Impureza ${fmt(ref.impureza)}%`;
+  refNote.textContent = `Referencia (${ref.label}): Humedad ${fmt(ref.humedad)}% · Impureza ${fmt(ref.impureza)}% · Partidos ${fmt(ref.partido)}% · Dañados ${fmt(ref.danado)}%`;
 }
 
 // Actualiza etiquetas de moneda/unidad (Bs/qq para Maíz y Sorgo, USD/TM
@@ -394,13 +411,14 @@ function updateCurrencyLabels(){
   document.getElementById('out-O-label').innerHTML = `Peso líquido ${ref.unit} (O)<span class="formula">${ref.unit === 'TM' ? 'L/1000' : 'L/1000×21.74'}</span>`;
 }
 
-[humedadInput, impurezaInput, pesoInput, precioInput].forEach(el => el.addEventListener('input', recalculate));
+[humedadInput, impurezaInput, partidoInput, danadoInput, pesoInput, precioInput].forEach(el => el.addEventListener('input', recalculate));
 
-// Mirrors the spreadsheet's A-Q panel exactly:
-//   E = A-C, F = B-D
-//   G = max(0, E/(1-C)) rounded to 4 decimals (as a fraction)
-//   H = max(0, F/(1-D)) rounded to 4 decimals
-//   I = G+H
+// Mirrors the spreadsheet's A-Q panel, extended with Partidos y Dañados
+// (mismos valores de referencia que la página C. Peso):
+//   E = A-C, F = B-D, S = Partidos-P, T = Dañados-R
+//   G = max(0, E/(1-C)) rounded to 2 decimals (as a percentage)
+//   H, U, V = ídem para impureza, partido y dañado
+//   I = G+H+U+V
 //   K = round(I x J, 0 decimals)
 //   L = J-K
 //   N = J x M / 1000 x 21.74
@@ -413,21 +431,29 @@ function recalculate(){
   const ref = GRAIN_REFERENCES[selectedGrain];
   const A = parseFloat(humedadInput.value);
   const B = parseFloat(impurezaInput.value);
+  const Partidos = parseFloat(partidoInput.value);
+  const Danados = parseFloat(danadoInput.value);
   const J = parseFloat(pesoInput.value);
   const M = parseFloat(precioInput.value);
   const C = ref.humedad;
   const D = ref.impureza;
+  const P = ref.partido;
+  const R = ref.danado;
 
   document.getElementById('out-C').textContent = fmtPct(C);
   document.getElementById('out-D').textContent = fmtPct(D);
+  document.getElementById('out-P').textContent = fmtPct(P);
+  document.getElementById('out-R').textContent = fmtPct(R);
 
   const missing = [];
   if (Number.isNaN(A) || A < 0) missing.push('ingresa la humedad registrada');
   if (Number.isNaN(B) || B < 0) missing.push('ingresa la impureza registrada');
+  if (Number.isNaN(Partidos) || Partidos < 0) missing.push('ingresa los partidos');
+  if (Number.isNaN(Danados) || Danados < 0) missing.push('ingresa los dañados');
   if (Number.isNaN(J) || J <= 0) missing.push('ingresa el peso neto');
   if (Number.isNaN(M) || M <= 0) missing.push('ingresa el precio neto');
 
-  const rows = ['out-E', 'out-F', 'out-G', 'out-H', 'out-I', 'out-K', 'out-L', 'out-O'];
+  const rows = ['out-E', 'out-F', 'out-S', 'out-T', 'out-G', 'out-H', 'out-U', 'out-V', 'out-I', 'out-K', 'out-L', 'out-O'];
   const precioTotalEl = document.getElementById('precioTotalValue');
   const precioUnitarioEl = document.getElementById('precioUnitarioValue');
 
@@ -443,9 +469,13 @@ function recalculate(){
 
   const E = A - C;
   const F = B - D;
+  const S = Partidos - P;
+  const T = Danados - R;
   const G = Math.max(0, Math.round((E / (1 - C / 100)) * 100) / 100);
   const H = Math.max(0, Math.round((F / (1 - D / 100)) * 100) / 100);
-  const I = G + H;
+  const U = Math.max(0, Math.round((S / (1 - P / 100)) * 100) / 100);
+  const V = Math.max(0, Math.round((T / (1 - R / 100)) * 100) / 100);
+  const I = G + H + U + V;
   const K = Math.round((I / 100) * J);
   const L = J - K;
   const N = ref.kgToUnit(J) * M;
@@ -454,8 +484,12 @@ function recalculate(){
 
   document.getElementById('out-E').textContent = fmtPct(E);
   document.getElementById('out-F').textContent = fmtPct(F);
+  document.getElementById('out-S').textContent = fmtPct(S);
+  document.getElementById('out-T').textContent = fmtPct(T);
   document.getElementById('out-G').textContent = fmtPct(G);
   document.getElementById('out-H').textContent = fmtPct(H);
+  document.getElementById('out-U').textContent = fmtPct(U);
+  document.getElementById('out-V').textContent = fmtPct(V);
   document.getElementById('out-I').textContent = fmtPct(I);
   document.getElementById('out-K').textContent = `${fmt(K, 0)} Kg`;
   document.getElementById('out-L').textContent = `${fmt(L, 0)} Kg`;
