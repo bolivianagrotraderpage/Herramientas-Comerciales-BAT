@@ -285,20 +285,19 @@
     <div class="calc-layout">
       <div class="calc-card">
         <div class="field">
-          <label for="humedadInput">Humedad registrada (%)</label>
+          <label for="humedadInput" id="humedadLabel">Humedad registrada (% · ref. 14%)</label>
           <input type="number" id="humedadInput" min="0" step="0.01" placeholder="Ej. 12.10">
-          <div class="ref-note" id="refNote">Referencia (Sorgo): Humedad 14% · Impureza 1% · Partidos 4% · Dañados 4%</div>
         </div>
         <div class="field">
-          <label for="impurezaInput">Impureza registrada (%)</label>
+          <label for="impurezaInput" id="impurezaLabel">Impureza registrada (% · ref. 1%)</label>
           <input type="number" id="impurezaInput" min="0" step="0.01" placeholder="Ej. 2.13">
         </div>
         <div class="field">
-          <label for="partidoInput">Partidos (%)</label>
+          <label for="partidoInput" id="partidoLabel">Partidos (% · ref. 4%)</label>
           <input type="number" id="partidoInput" min="0" step="0.01" placeholder="Ej. 16.00">
         </div>
         <div class="field">
-          <label for="danadoInput">Dañados (%)</label>
+          <label for="danadoInput" id="danadoLabel">Dañados (% · ref. 4%)</label>
           <input type="number" id="danadoInput" min="0" step="0.01" placeholder="Ej. 9.00">
         </div>
         <hr class="field-divider">
@@ -365,7 +364,10 @@ const partidoInput = document.getElementById('partidoInput');
 const danadoInput = document.getElementById('danadoInput');
 const pesoBrutoInput = document.getElementById('pesoBrutoInput');
 const pesoTaraInput = document.getElementById('pesoTaraInput');
-const refNote = document.getElementById('refNote');
+const humedadLabel = document.getElementById('humedadLabel');
+const impurezaLabel = document.getElementById('impurezaLabel');
+const partidoLabel = document.getElementById('partidoLabel');
+const danadoLabel = document.getElementById('danadoLabel');
 const statusBanner = document.getElementById('statusBanner');
 const grainToggle = document.getElementById('grainToggle');
 const pesoLiquidoEl = document.getElementById('pesoLiquidoValue');
@@ -383,14 +385,17 @@ grainToggle.querySelectorAll('.grain-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     selectedGrain = btn.dataset.grain;
     grainToggle.querySelectorAll('.grain-btn').forEach(b => b.classList.toggle('active', b === btn));
-    updateRefNote();
+    updateFieldLabels();
     recalculate();
   });
 });
 
-function updateRefNote(){
+function updateFieldLabels(){
   const ref = GRAIN_REFERENCES[selectedGrain];
-  refNote.textContent = `Referencia (${ref.label}): Humedad ${fmt(ref.humedad)}% · Impureza ${fmt(ref.impureza)}% · Partidos ${fmt(ref.partido)}% · Dañados ${fmt(ref.danado)}%`;
+  humedadLabel.textContent = `Humedad registrada (% · ref. ${fmt(ref.humedad, 0)}%)`;
+  impurezaLabel.textContent = `Impureza registrada (% · ref. ${fmt(ref.impureza, 0)}%)`;
+  partidoLabel.textContent = `Partidos (% · ref. ${fmt(ref.partido, 0)}%)`;
+  danadoLabel.textContent = `Dañados (% · ref. ${fmt(ref.danado, 0)}%)`;
 }
 
 [humedadInput, impurezaInput, partidoInput, danadoInput, pesoBrutoInput, pesoTaraInput].forEach(el => el.addEventListener('input', recalculate));
@@ -469,7 +474,7 @@ function recalculate(){
   descuentoTotalPctEl.className = 'value';
 }
 
-updateRefNote();
+updateFieldLabels();
 recalculate();
 </script>
 
