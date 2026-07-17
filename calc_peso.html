@@ -8,13 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #0D2216;
-    --bg-panel: #12331F;
-    --line: #2E5138;
-    --text: #F4EFD9;
-    --text-dim: #A9C4AF;
+    --bg: #0A2A57;
+    --bg-panel: #0E3670;
+    --line: #24568F;
+    --text: #F4F7FB;
+    --text-dim: #9FB8D9;
     --grain: #E7B93E;
-    --grain-dim: #5B4712;
+    --grain-dim: #4A3A12;
     --radius: 6px;
   }
   *{box-sizing:border-box}
@@ -48,9 +48,9 @@
     width:140%; height:220%;
     background:linear-gradient(115deg,
       transparent 44%,
-      rgba(244,239,217,0.05) 46%,
-      rgba(244,239,217,0.09) 50%,
-      rgba(244,239,217,0.05) 54%,
+      rgba(231,185,62,0.06) 46%,
+      rgba(231,185,62,0.11) 50%,
+      rgba(231,185,62,0.06) 54%,
       transparent 56%);
     pointer-events:none;
     z-index:-1;
@@ -92,6 +92,8 @@
   .page-nav a.active{background:var(--bg-panel); color:var(--text); border-color:var(--text-dim);}
   main{max-width:1080px; margin:0 auto; padding:0 32px;}
   section{margin-top:40px;}
+  section > h2{font-size:20px; margin-bottom:4px;}
+  .sub{color:var(--text-dim); font-size:12px; margin-bottom:20px;}
   .group-label{
     display:inline-flex;
     align-items:center;
@@ -104,20 +106,153 @@
     margin-bottom:16px;
     color:var(--grain); background:var(--grain-dim);
   }
-  .placeholder-card{
+
+  .grain-toggle{
+    display:flex;
+    gap:10px;
+    margin-bottom:24px;
+    max-width:520px;
+  }
+  .grain-btn{
+    flex:1;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    padding:12px 14px;
+    border-radius:4px;
+    border:1px solid var(--line);
     background:var(--bg-panel);
+    color:var(--text-dim);
+    cursor:pointer;
+  }
+  .grain-btn:hover{ border-color:var(--text-dim); color:var(--text); }
+  .grain-btn.active{
+    background:var(--grain-dim);
+    color:var(--grain);
+    border-color:var(--grain);
+  }
+
+  .calc-layout{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:24px;
+    align-items:start;
+  }
+  @media (max-width:800px){
+    .calc-layout{ grid-template-columns:1fr; }
+  }
+
+  .calc-card{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:24px;
+  }
+  .field{ margin-bottom:20px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{
+    display:block;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-dim);
+    margin-bottom:8px;
+  }
+  .field input[type="number"]{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'JetBrains Mono', monospace;
+    font-size:15px;
+    padding:12px 14px;
+    border-radius:4px;
+  }
+  .field input[type="number"]:focus{
+    outline:none;
+    border-color:var(--text-dim);
+  }
+  .field .ref-note{
+    font-size:11px;
+    color:var(--text-dim);
+    margin-top:6px;
+  }
+  .field-divider{
+    border:none;
+    border-top:1px dashed var(--line);
+    margin:20px 0;
+  }
+
+  .result-card{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:24px;
+  }
+  .headline-numbers{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:24px;
+  }
+  .headline-number{
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    text-align:center;
+  }
+  .headline-number .value{
+    font-family:'Fraunces', serif;
+    font-size:24px;
+    color:var(--grain);
+    line-height:1;
+  }
+  .headline-number .value.pending{ color:var(--text-dim); font-size:16px; }
+  .headline-number .label{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-dim);
+    margin-top:8px;
+  }
+
+  .breakdown-title{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-dim);
+    margin-bottom:10px;
+  }
+  .breakdown{
+    font-size:12.5px;
+  }
+  .breakdown-row{
+    display:flex;
+    justify-content:space-between;
+    padding:7px 0;
+    border-bottom:1px dashed var(--line);
+    gap:12px;
+  }
+  .breakdown-row:last-child{ border-bottom:none; }
+  .breakdown-row .k{ color:var(--text-dim); }
+  .breakdown-row .k .formula{ color:var(--text-dim); opacity:0.6; margin-left:6px; font-size:10.5px; }
+  .breakdown-row .v{ color:var(--text); font-weight:600; }
+  .breakdown-row .v.dim{ color:var(--text-dim); font-weight:400; }
+
+  .status-banner{
+    font-size:12.5px;
+    color:var(--text-dim);
+    padding:14px 16px;
     border:1px dashed var(--line);
     border-radius:var(--radius);
-    padding:48px 32px;
-    text-align:center;
-    max-width:640px;
+    margin-bottom:24px;
+    max-width:700px;
   }
-  .placeholder-card h2{ font-size:22px; margin-bottom:10px; }
-  .placeholder-card p{ color:var(--text-dim); font-size:13px; }
   @media (max-width:640px){
     header{padding:32px 20px 24px;}
     main{padding:0 20px;}
     header h1{font-size:26px;}
+    .headline-numbers{ grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -127,7 +262,7 @@
   <div class="stars">★ ★ ★ ★ ★</div>
   <div class="eyebrow">Reporte de mercado · herramienta</div>
   <h1>Precios agropecuarios — Bolivia</h1>
-  <p>Herramienta de análisis — próximamente</p>
+  <p>Calculadora de peso líquido por calidad de grano — Soya / Maíz / Sorgo</p>
   <nav class="page-nav">
     <a href="comercial.html">Comercial</a>
     <a href="analista.html" class="active">C. Peso</a>
@@ -135,14 +270,208 @@
 </header>
 
 <main>
+
   <section>
     <span class="group-label">C. Peso</span>
-    <div class="placeholder-card">
-      <h2>Work in progress</h2>
-      <p>Esta sección está en construcción. Pronto encontrarás aquí herramientas de análisis.</p>
+    <h2>Descuento por humedad, impureza, partidos y dañados</h2>
+    <div class="sub">Calcula el peso líquido a partir del peso bruto y tara, aplicando el descuento por calidad de grano registrado en boleta, según el grano. Todo el cálculo ocurre en esta página.</div>
+
+    <div class="grain-toggle" id="grainToggle">
+      <button type="button" class="grain-btn" data-grain="soya">Soya</button>
+      <button type="button" class="grain-btn" data-grain="maiz">Maíz</button>
+      <button type="button" class="grain-btn active" data-grain="sorgo">Sorgo</button>
+    </div>
+
+    <div class="calc-layout">
+      <div class="calc-card">
+        <div class="field">
+          <label for="humedadInput">Humedad registrada (%)</label>
+          <input type="number" id="humedadInput" min="0" step="0.01" placeholder="Ej. 12.10">
+          <div class="ref-note" id="refNote">Referencia (Sorgo): Humedad 14% · Impureza 1% · Partidos 4% · Dañados 4%</div>
+        </div>
+        <div class="field">
+          <label for="impurezaInput">Impureza registrada (%)</label>
+          <input type="number" id="impurezaInput" min="0" step="0.01" placeholder="Ej. 2.13">
+        </div>
+        <div class="field">
+          <label for="partidoInput">Partidos (%)</label>
+          <input type="number" id="partidoInput" min="0" step="0.01" placeholder="Ej. 16.00">
+        </div>
+        <div class="field">
+          <label for="danadoInput">Dañados (%)</label>
+          <input type="number" id="danadoInput" min="0" step="0.01" placeholder="Ej. 9.00">
+        </div>
+        <hr class="field-divider">
+        <div class="field">
+          <label for="pesoBrutoInput">Peso bruto (Kg)</label>
+          <input type="number" id="pesoBrutoInput" min="0" step="0.01" placeholder="Ej. 23000.00">
+        </div>
+        <div class="field">
+          <label for="pesoTaraInput">Peso tara (Kg)</label>
+          <input type="number" id="pesoTaraInput" min="0" step="0.01" placeholder="Ej. 3140.00">
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="status-banner" id="statusBanner">Completa los datos de humedad, impureza, partidos, dañados, peso bruto y tara para ver el resultado.</div>
+
+        <div class="headline-numbers">
+          <div class="headline-number">
+            <div class="value pending" id="pesoLiquidoValue">—</div>
+            <div class="label">Peso líquido (Kg)</div>
+          </div>
+          <div class="headline-number">
+            <div class="value pending" id="descuentoTotalPctValue">—</div>
+            <div class="label">Descuento total (%)</div>
+          </div>
+        </div>
+
+        <div class="breakdown-title">Desglose del cálculo</div>
+        <div class="breakdown">
+          <div class="breakdown-row"><span class="k">Humedad en exceso (I)<span class="formula">A-E</span></span><span class="v" id="out-I">—</span></div>
+          <div class="breakdown-row"><span class="k">Impureza en exceso (J)<span class="formula">B-F</span></span><span class="v" id="out-J">—</span></div>
+          <div class="breakdown-row"><span class="k">Partidos en exceso (K)<span class="formula">C-G</span></span><span class="v" id="out-K">—</span></div>
+          <div class="breakdown-row"><span class="k">Dañado en exceso (L)<span class="formula">D-H</span></span><span class="v" id="out-L">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento por humedad % (M)<span class="formula">I/(1-E), mín. 0%</span></span><span class="v" id="out-M">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento por impureza % (N)<span class="formula">J/(1-F), mín. 0%</span></span><span class="v" id="out-N">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento por partido % (O)<span class="formula">K/(1-G), mín. 0%</span></span><span class="v" id="out-O">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento por dañado % (P)<span class="formula">L/(1-H), mín. 0%</span></span><span class="v" id="out-P">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento total % (Q)<span class="formula">M+N+O+P</span></span><span class="v" id="out-Q">—</span></div>
+          <div class="breakdown-row"><span class="k">Peso neto Kg (T)<span class="formula">R-S</span></span><span class="v" id="out-T">—</span></div>
+          <div class="breakdown-row"><span class="k">Descuento total Kg (U)<span class="formula">Q×T, redondeado</span></span><span class="v" id="out-U">—</span></div>
+          <div class="breakdown-row"><span class="k">Peso líquido Kg (V)<span class="formula">T-U</span></span><span class="v" id="out-V">—</span></div>
+        </div>
+      </div>
     </div>
   </section>
+
 </main>
+
+<script>
+// Valores de referencia por grano. Soya: Humedad 13% / Impureza 1% /
+// Partidos 15% / Dañados 8%. Maíz y Sorgo comparten: Humedad 14% /
+// Impureza 1% / Partidos 4% / Dañados 4%.
+const GRAIN_REFERENCES = {
+  soya:  { label: 'Soya',  humedad: 13, impureza: 1, partido: 15, danado: 8 },
+  maiz:  { label: 'Maíz',  humedad: 14, impureza: 1, partido: 4,  danado: 4 },
+  sorgo: { label: 'Sorgo', humedad: 14, impureza: 1, partido: 4,  danado: 4 },
+};
+
+let selectedGrain = 'sorgo';
+
+const humedadInput = document.getElementById('humedadInput');
+const impurezaInput = document.getElementById('impurezaInput');
+const partidoInput = document.getElementById('partidoInput');
+const danadoInput = document.getElementById('danadoInput');
+const pesoBrutoInput = document.getElementById('pesoBrutoInput');
+const pesoTaraInput = document.getElementById('pesoTaraInput');
+const refNote = document.getElementById('refNote');
+const statusBanner = document.getElementById('statusBanner');
+const grainToggle = document.getElementById('grainToggle');
+const pesoLiquidoEl = document.getElementById('pesoLiquidoValue');
+const descuentoTotalPctEl = document.getElementById('descuentoTotalPctValue');
+
+function fmt(n, decimals = 2){
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
+  return n.toLocaleString('es-BO', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+function fmtPct(n){
+  return n === null || n === undefined || Number.isNaN(n) ? '—' : `${fmt(n)}%`;
+}
+
+grainToggle.querySelectorAll('.grain-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    selectedGrain = btn.dataset.grain;
+    grainToggle.querySelectorAll('.grain-btn').forEach(b => b.classList.toggle('active', b === btn));
+    updateRefNote();
+    recalculate();
+  });
+});
+
+function updateRefNote(){
+  const ref = GRAIN_REFERENCES[selectedGrain];
+  refNote.textContent = `Referencia (${ref.label}): Humedad ${fmt(ref.humedad)}% · Impureza ${fmt(ref.impureza)}% · Partidos ${fmt(ref.partido)}% · Dañados ${fmt(ref.danado)}%`;
+}
+
+[humedadInput, impurezaInput, partidoInput, danadoInput, pesoBrutoInput, pesoTaraInput].forEach(el => el.addEventListener('input', recalculate));
+
+// Mirrors the spreadsheet's A-V panel:
+//   E,F,G,H = valores de referencia según grano
+//   I = A-E, J = B-F, K = C-G, L = D-H
+//   M,N,O,P = max(round(exceso/(1-referencia), 4), 0)
+//   Q = M+N+O+P
+//   T = R-S
+//   U = round(Q*T, 0)
+//   V = T-U
+function recalculate(){
+  const ref = GRAIN_REFERENCES[selectedGrain];
+  const A = humedadInput.value === '' ? null : parseFloat(humedadInput.value) / 100;
+  const B = impurezaInput.value === '' ? null : parseFloat(impurezaInput.value) / 100;
+  const C = partidoInput.value === '' ? null : parseFloat(partidoInput.value) / 100;
+  const D = danadoInput.value === '' ? null : parseFloat(danadoInput.value) / 100;
+  const R = pesoBrutoInput.value === '' ? null : parseFloat(pesoBrutoInput.value);
+  const S = pesoTaraInput.value === '' ? null : parseFloat(pesoTaraInput.value);
+
+  const ready = [A, B, C, D, R, S].every(v => v !== null && !Number.isNaN(v));
+
+  if (!ready){
+    statusBanner.style.display = 'block';
+    statusBanner.textContent = 'Completa los datos de humedad, impureza, partidos, dañados, peso bruto y tara para ver el resultado.';
+    pesoLiquidoEl.textContent = '—';
+    pesoLiquidoEl.className = 'value pending';
+    descuentoTotalPctEl.textContent = '—';
+    descuentoTotalPctEl.className = 'value pending';
+    ['I','J','K','L','M','N','O','P','Q','T','U','V'].forEach(id => {
+      document.getElementById(`out-${id}`).textContent = '—';
+    });
+    return;
+  }
+
+  statusBanner.style.display = 'none';
+
+  const E = ref.humedad / 100;
+  const F = ref.impureza / 100;
+  const G = ref.partido / 100;
+  const H = ref.danado / 100;
+
+  const I = A - E;
+  const J = B - F;
+  const K = C - G;
+  const L = D - H;
+
+  const round4 = n => Math.round(n * 10000) / 10000;
+  const M = Math.max(round4(I / (1 - E)), 0);
+  const N = Math.max(round4(J / (1 - F)), 0);
+  const O = Math.max(round4(K / (1 - G)), 0);
+  const P = Math.max(round4(L / (1 - H)), 0);
+  const Q = M + N + O + P;
+
+  const T = R - S;
+  const U = Math.round(Q * T);
+  const V = T - U;
+
+  document.getElementById('out-I').textContent = fmtPct(I * 100);
+  document.getElementById('out-J').textContent = fmtPct(J * 100);
+  document.getElementById('out-K').textContent = fmtPct(K * 100);
+  document.getElementById('out-L').textContent = fmtPct(L * 100);
+  document.getElementById('out-M').textContent = fmtPct(M * 100);
+  document.getElementById('out-N').textContent = fmtPct(N * 100);
+  document.getElementById('out-O').textContent = fmtPct(O * 100);
+  document.getElementById('out-P').textContent = fmtPct(P * 100);
+  document.getElementById('out-Q').textContent = fmtPct(Q * 100);
+  document.getElementById('out-T').textContent = `${fmt(T, 0)} Kg`;
+  document.getElementById('out-U').textContent = `${fmt(U, 0)} Kg`;
+  document.getElementById('out-V').textContent = `${fmt(V, 0)} Kg`;
+
+  pesoLiquidoEl.textContent = `${fmt(V, 0)} Kg`;
+  pesoLiquidoEl.className = 'value';
+  descuentoTotalPctEl.textContent = fmtPct(Q * 100);
+  descuentoTotalPctEl.className = 'value';
+}
+
+updateRefNote();
+recalculate();
+</script>
 
 </body>
 </html>
