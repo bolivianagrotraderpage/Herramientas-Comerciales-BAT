@@ -190,7 +190,7 @@
   }
   .headline-numbers{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:1fr 1fr 1fr;
     gap:16px;
     margin-bottom:24px;
   }
@@ -316,6 +316,10 @@
 
         <div class="headline-numbers">
           <div class="headline-number">
+            <div class="value pending" id="pesoNetoValue">—</div>
+            <div class="label">Peso neto (Kg)</div>
+          </div>
+          <div class="headline-number">
             <div class="value pending" id="pesoLiquidoValue">—</div>
             <div class="label">Peso líquido (Kg)</div>
           </div>
@@ -370,6 +374,7 @@ const partidoLabel = document.getElementById('partidoLabel');
 const danadoLabel = document.getElementById('danadoLabel');
 const statusBanner = document.getElementById('statusBanner');
 const grainToggle = document.getElementById('grainToggle');
+const pesoNetoEl = document.getElementById('pesoNetoValue');
 const pesoLiquidoEl = document.getElementById('pesoLiquidoValue');
 const descuentoTotalPctEl = document.getElementById('descuentoTotalPctValue');
 
@@ -422,6 +427,8 @@ function recalculate(){
   if (!ready){
     statusBanner.style.display = 'block';
     statusBanner.textContent = 'Completa los datos de humedad, impureza, partidos, dañados, peso bruto y tara para ver el resultado.';
+    pesoNetoEl.textContent = '—';
+    pesoNetoEl.className = 'value pending';
     pesoLiquidoEl.textContent = '—';
     pesoLiquidoEl.className = 'value pending';
     descuentoTotalPctEl.textContent = '—';
@@ -468,6 +475,8 @@ function recalculate(){
   document.getElementById('out-U').textContent = `${fmt(U, 0)} Kg`;
   document.getElementById('out-V').textContent = `${fmt(V, 0)} Kg`;
 
+  pesoNetoEl.textContent = `${fmt(T, 0)} Kg`;
+  pesoNetoEl.className = 'value';
   pesoLiquidoEl.textContent = `${fmt(V, 0)} Kg`;
   pesoLiquidoEl.className = 'value';
   descuentoTotalPctEl.textContent = fmtPct(Q * 100);
