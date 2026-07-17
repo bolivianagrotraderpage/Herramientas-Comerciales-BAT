@@ -176,6 +176,7 @@
     color:var(--text-dim);
     margin-top:6px;
   }
+  .soya-only[hidden]{ display:none; }
   .field-divider{
     border:none;
     border-top:1px dashed var(--line);
@@ -300,6 +301,18 @@
           <label for="danadoInput" id="danadoLabel">Dañados (% · ref. 4%)</label>
           <input type="number" id="danadoInput" min="0" step="0.01" placeholder="Ej. 9.00">
         </div>
+        <div class="field soya-only" id="calorField" hidden>
+          <label for="calorInput" id="calorLabel">Dañado por calor (% · ref. 0.5%)</label>
+          <input type="number" id="calorInput" min="0" step="0.01" placeholder="Ej. 1.00">
+        </div>
+        <div class="field soya-only" id="verdeField" hidden>
+          <label for="verdeInput" id="verdeLabel">Verde (% · ref. 3%)</label>
+          <input type="number" id="verdeInput" min="0" step="0.01" placeholder="Ej. 3.50">
+        </div>
+        <div class="field soya-only" id="enfermoField" hidden>
+          <label for="enfermoInput" id="enfermoLabel">Enfermo (% · ref. 2%)</label>
+          <input type="number" id="enfermoInput" min="0" step="0.01" placeholder="Ej. 2.50">
+        </div>
         <hr class="field-divider">
         <div class="field">
           <label for="pesoBrutoInput">Peso bruto (Kg)</label>
@@ -335,11 +348,17 @@
           <div class="breakdown-row"><span class="k">Impureza en exceso (J)<span class="formula">B-F</span></span><span class="v" id="out-J">—</span></div>
           <div class="breakdown-row"><span class="k">Partidos en exceso (K)<span class="formula">C-G</span></span><span class="v" id="out-K">—</span></div>
           <div class="breakdown-row"><span class="k">Dañado en exceso (L)<span class="formula">D-H</span></span><span class="v" id="out-L">—</span></div>
+          <div class="breakdown-row soya-only" id="row-calorExcess" hidden><span class="k">Dañado por calor en exceso<span class="formula">Calor−ref</span></span><span class="v" id="out-calorExcess">—</span></div>
+          <div class="breakdown-row soya-only" id="row-verdeExcess" hidden><span class="k">Verde en exceso<span class="formula">Verde−ref</span></span><span class="v" id="out-verdeExcess">—</span></div>
+          <div class="breakdown-row soya-only" id="row-enfermoExcess" hidden><span class="k">Enfermo en exceso<span class="formula">Enfermo−ref</span></span><span class="v" id="out-enfermoExcess">—</span></div>
           <div class="breakdown-row"><span class="k">Descuento por humedad % (M)<span class="formula">I/(1-E), mín. 0%</span></span><span class="v" id="out-M">—</span></div>
           <div class="breakdown-row"><span class="k">Descuento por impureza % (N)<span class="formula">J/(1-F), mín. 0%</span></span><span class="v" id="out-N">—</span></div>
-          <div class="breakdown-row"><span class="k">Descuento por partido % (O)<span class="formula">K/(1-G), mín. 0%</span></span><span class="v" id="out-O">—</span></div>
-          <div class="breakdown-row"><span class="k">Descuento por dañado % (P)<span class="formula">L/(1-H), mín. 0%</span></span><span class="v" id="out-P">—</span></div>
-          <div class="breakdown-row"><span class="k">Descuento total % (Q)<span class="formula">M+N+O+P</span></span><span class="v" id="out-Q">—</span></div>
+          <div class="breakdown-row"><span class="k" id="out-O-label">Descuento por partido % (O)<span class="formula">K/(1-G), mín. 0%</span></span><span class="v" id="out-O">—</span></div>
+          <div class="breakdown-row"><span class="k" id="out-P-label">Descuento por dañado % (P)<span class="formula">L/(1-H), mín. 0%</span></span><span class="v" id="out-P">—</span></div>
+          <div class="breakdown-row soya-only" id="row-calorDisc" hidden><span class="k">Descuento por dañado por calor<span class="formula">excess/1, mín. 0%</span></span><span class="v" id="out-calorDisc">—</span></div>
+          <div class="breakdown-row soya-only" id="row-verdeDisc" hidden><span class="k">Descuento por verde<span class="formula">excess/2, mín. 0%</span></span><span class="v" id="out-verdeDisc">—</span></div>
+          <div class="breakdown-row soya-only" id="row-enfermoDisc" hidden><span class="k">Descuento por enfermo<span class="formula">excess/8, mín. 0%</span></span><span class="v" id="out-enfermoDisc">—</span></div>
+          <div class="breakdown-row"><span class="k" id="out-Q-label">Descuento total % (Q)<span class="formula">M+N+O+P</span></span><span class="v" id="out-Q">—</span></div>
           <div class="breakdown-row"><span class="k">Peso neto Kg (T)<span class="formula">R-S</span></span><span class="v" id="out-T">—</span></div>
           <div class="breakdown-row"><span class="k">Descuento total Kg (U)<span class="formula">Q×T, redondeado</span></span><span class="v" id="out-U">—</span></div>
           <div class="breakdown-row"><span class="k">Peso líquido Kg (V)<span class="formula">T-U</span></span><span class="v" id="out-V">—</span></div>
@@ -352,12 +371,28 @@
 
 <script>
 // Valores de referencia por grano. Soya: Humedad 13% / Impureza 1% /
-// Partidos 15% / Dañados 8%. Maíz y Sorgo comparten: Humedad 14% /
-// Impureza 1% / Partidos 4% / Dañados 4%.
+// Partidos 15% / Dañados 8%, más los factores adicionales exclusivos de
+// Soya: Dañado por calor 0.5%, Verde 3%, Enfermo 2%. Maíz y Sorgo
+// comparten: Humedad 14% / Impureza 1% / Partidos 4% / Dañados 4%
+// (sin factores adicionales).
+// Para Humedad e Impureza, el descuento siempre es exceso/(1-referencia).
+// Para Soya, Partidos y Dañados usan un divisor fijo en vez de (1-ref):
+// Partidos → exceso/4, Dañados → exceso/2. Los 3 factores adicionales de
+// Soya también usan divisor fijo: Calor → exceso/1, Verde → exceso/2,
+// Enfermo → exceso/8. Maíz y Sorgo siguen usando exceso/(1-ref) para
+// Partidos y Dañados, como antes.
 const GRAIN_REFERENCES = {
-  soya:  { label: 'Soya',  humedad: 13, impureza: 1, partido: 15, danado: 8 },
-  maiz:  { label: 'Maíz',  humedad: 14, impureza: 1, partido: 4,  danado: 4 },
-  sorgo: { label: 'Sorgo', humedad: 14, impureza: 1, partido: 4,  danado: 4 },
+  soya: {
+    label: 'Soya', extended: true,
+    humedad: 13, impureza: 1,
+    partido: 15, partidoDivisor: 4,
+    danado: 8, danadoDivisor: 2,
+    danadoCalor: 0.5, danadoCalorDivisor: 1,
+    verde: 3, verdeDivisor: 2,
+    enfermo: 2, enfermoDivisor: 8,
+  },
+  maiz:  { label: 'Maíz',  extended: false, humedad: 14, impureza: 1, partido: 4, danado: 4 },
+  sorgo: { label: 'Sorgo', extended: false, humedad: 14, impureza: 1, partido: 4, danado: 4 },
 };
 
 let selectedGrain = 'sorgo';
@@ -366,12 +401,22 @@ const humedadInput = document.getElementById('humedadInput');
 const impurezaInput = document.getElementById('impurezaInput');
 const partidoInput = document.getElementById('partidoInput');
 const danadoInput = document.getElementById('danadoInput');
+const calorInput = document.getElementById('calorInput');
+const verdeInput = document.getElementById('verdeInput');
+const enfermoInput = document.getElementById('enfermoInput');
 const pesoBrutoInput = document.getElementById('pesoBrutoInput');
 const pesoTaraInput = document.getElementById('pesoTaraInput');
 const humedadLabel = document.getElementById('humedadLabel');
 const impurezaLabel = document.getElementById('impurezaLabel');
 const partidoLabel = document.getElementById('partidoLabel');
 const danadoLabel = document.getElementById('danadoLabel');
+const calorLabel = document.getElementById('calorLabel');
+const verdeLabel = document.getElementById('verdeLabel');
+const enfermoLabel = document.getElementById('enfermoLabel');
+const calorField = document.getElementById('calorField');
+const verdeField = document.getElementById('verdeField');
+const enfermoField = document.getElementById('enfermoField');
+const soyaOnlyRows = ['row-calorExcess', 'row-verdeExcess', 'row-enfermoExcess', 'row-calorDisc', 'row-verdeDisc', 'row-enfermoDisc'].map(id => document.getElementById(id));
 const statusBanner = document.getElementById('statusBanner');
 const grainToggle = document.getElementById('grainToggle');
 const pesoNetoEl = document.getElementById('pesoNetoValue');
@@ -401,40 +446,75 @@ function updateFieldLabels(){
   impurezaLabel.textContent = `Impureza registrada (% · ref. ${fmt(ref.impureza, 0)}%)`;
   partidoLabel.textContent = `Partidos (% · ref. ${fmt(ref.partido, 0)}%)`;
   danadoLabel.textContent = `Dañados (% · ref. ${fmt(ref.danado, 0)}%)`;
+
+  calorField.hidden = !ref.extended;
+  verdeField.hidden = !ref.extended;
+  enfermoField.hidden = !ref.extended;
+  soyaOnlyRows.forEach(el => { el.hidden = !ref.extended; });
+
+  if (ref.extended){
+    calorLabel.textContent = `Dañado por calor (% · ref. ${fmt(ref.danadoCalor, 1)}%)`;
+    verdeLabel.textContent = `Verde (% · ref. ${fmt(ref.verde, 0)}%)`;
+    enfermoLabel.textContent = `Enfermo (% · ref. ${fmt(ref.enfermo, 0)}%)`;
+  }
+
+  // Partidos y Dañados usan divisor fijo en Soya, exceso/(1-ref) en Maíz/Sorgo.
+  document.getElementById('out-O-label').innerHTML = ref.extended
+    ? `Descuento por partido % (O)<span class="formula">K/${ref.partidoDivisor}, mín. 0%</span>`
+    : `Descuento por partido % (O)<span class="formula">K/(1-G), mín. 0%</span>`;
+  document.getElementById('out-P-label').innerHTML = ref.extended
+    ? `Descuento por dañado % (P)<span class="formula">L/${ref.danadoDivisor}, mín. 0%</span>`
+    : `Descuento por dañado % (P)<span class="formula">L/(1-H), mín. 0%</span>`;
+  document.getElementById('out-Q-label').innerHTML = ref.extended
+    ? `Descuento total % (Q)<span class="formula">M+N+O+P+calor+verde+enfermo</span>`
+    : `Descuento total % (Q)<span class="formula">M+N+O+P</span>`;
 }
 
-[humedadInput, impurezaInput, partidoInput, danadoInput, pesoBrutoInput, pesoTaraInput].forEach(el => el.addEventListener('input', recalculate));
+[humedadInput, impurezaInput, partidoInput, danadoInput, calorInput, verdeInput, enfermoInput, pesoBrutoInput, pesoTaraInput].forEach(el => el.addEventListener('input', recalculate));
 
-// Mirrors the spreadsheet's A-V panel:
+// Mirrors the spreadsheet's panel:
 //   E,F,G,H = valores de referencia según grano
 //   I = A-E, J = B-F, K = C-G, L = D-H
-//   M,N,O,P = max(round(exceso/(1-referencia), 4), 0)
-//   Q = M+N+O+P
-//   T = R-S
-//   U = round(Q*T, 0)
-//   V = T-U
+//   Humedad/Impureza: M,N = max(round(exceso/(1-referencia), 4), 0)  — todos los granos
+//   Maíz/Sorgo — Partidos/Dañados: O,P = max(round(exceso/(1-referencia), 4), 0)
+//   Soya — Partidos/Dañados: O = max(round(K/4, 4), 0), P = max(round(L/2, 4), 0)
+//   Soya además: Calor = max(round(exceso/1, 4), 0), Verde = max(round(exceso/2, 4), 0),
+//                Enfermo = max(round(exceso/8, 4), 0)
+//   Q = suma de todos los descuentos aplicables
+//   T = R-S, U = round(Q*T, 0), V = T-U
 function recalculate(){
   const ref = GRAIN_REFERENCES[selectedGrain];
   const A = humedadInput.value === '' ? null : parseFloat(humedadInput.value) / 100;
   const B = impurezaInput.value === '' ? null : parseFloat(impurezaInput.value) / 100;
   const C = partidoInput.value === '' ? null : parseFloat(partidoInput.value) / 100;
   const D = danadoInput.value === '' ? null : parseFloat(danadoInput.value) / 100;
+  const Calor = calorInput.value === '' ? null : parseFloat(calorInput.value) / 100;
+  const Verde = verdeInput.value === '' ? null : parseFloat(verdeInput.value) / 100;
+  const Enfermo = enfermoInput.value === '' ? null : parseFloat(enfermoInput.value) / 100;
   const R = pesoBrutoInput.value === '' ? null : parseFloat(pesoBrutoInput.value);
   const S = pesoTaraInput.value === '' ? null : parseFloat(pesoTaraInput.value);
 
-  const ready = [A, B, C, D, R, S].every(v => v !== null && !Number.isNaN(v));
+  const requiredValues = ref.extended
+    ? [A, B, C, D, Calor, Verde, Enfermo, R, S]
+    : [A, B, C, D, R, S];
+  const ready = requiredValues.every(v => v !== null && !Number.isNaN(v));
+
+  const allRowIds = ['I','J','K','L','M','N','O','P','Q','T','U','V','calorExcess','verdeExcess','enfermoExcess','calorDisc','verdeDisc','enfermoDisc'];
 
   if (!ready){
     statusBanner.style.display = 'block';
-    statusBanner.textContent = 'Completa los datos de humedad, impureza, partidos, dañados, peso bruto y tara para ver el resultado.';
+    statusBanner.textContent = ref.extended
+      ? 'Completa los datos de humedad, impureza, partidos, dañados, dañado por calor, verde, enfermo, peso bruto y tara para ver el resultado.'
+      : 'Completa los datos de humedad, impureza, partidos, dañados, peso bruto y tara para ver el resultado.';
     pesoNetoEl.textContent = '—';
     pesoNetoEl.className = 'value pending';
     pesoLiquidoEl.textContent = '—';
     pesoLiquidoEl.className = 'value pending';
     descuentoTotalPctEl.textContent = '—';
     descuentoTotalPctEl.className = 'value pending';
-    ['I','J','K','L','M','N','O','P','Q','T','U','V'].forEach(id => {
-      document.getElementById(`out-${id}`).textContent = '—';
+    allRowIds.forEach(id => {
+      const el = document.getElementById(`out-${id}`);
+      if (el) el.textContent = '—';
     });
     return;
   }
@@ -454,9 +534,21 @@ function recalculate(){
   const round4 = n => Math.round(n * 10000) / 10000;
   const M = Math.max(round4(I / (1 - E)), 0);
   const N = Math.max(round4(J / (1 - F)), 0);
-  const O = Math.max(round4(K / (1 - G)), 0);
-  const P = Math.max(round4(L / (1 - H)), 0);
-  const Q = M + N + O + P;
+  const O = ref.extended ? Math.max(round4(K / ref.partidoDivisor), 0) : Math.max(round4(K / (1 - G)), 0);
+  const P = ref.extended ? Math.max(round4(L / ref.danadoDivisor), 0) : Math.max(round4(L / (1 - H)), 0);
+
+  let Q = M + N + O + P;
+
+  let calorExcess = null, calorDisc = null, verdeExcess = null, verdeDisc = null, enfermoExcess = null, enfermoDisc = null;
+  if (ref.extended){
+    calorExcess = Calor - (ref.danadoCalor / 100);
+    verdeExcess = Verde - (ref.verde / 100);
+    enfermoExcess = Enfermo - (ref.enfermo / 100);
+    calorDisc = Math.max(round4(calorExcess / ref.danadoCalorDivisor), 0);
+    verdeDisc = Math.max(round4(verdeExcess / ref.verdeDivisor), 0);
+    enfermoDisc = Math.max(round4(enfermoExcess / ref.enfermoDivisor), 0);
+    Q += calorDisc + verdeDisc + enfermoDisc;
+  }
 
   const T = R - S;
   const U = Math.round(Q * T);
@@ -474,6 +566,15 @@ function recalculate(){
   document.getElementById('out-T').textContent = `${fmt(T, 0)} Kg`;
   document.getElementById('out-U').textContent = `${fmt(U, 0)} Kg`;
   document.getElementById('out-V').textContent = `${fmt(V, 0)} Kg`;
+
+  if (ref.extended){
+    document.getElementById('out-calorExcess').textContent = fmtPct(calorExcess * 100);
+    document.getElementById('out-verdeExcess').textContent = fmtPct(verdeExcess * 100);
+    document.getElementById('out-enfermoExcess').textContent = fmtPct(enfermoExcess * 100);
+    document.getElementById('out-calorDisc').textContent = fmtPct(calorDisc * 100);
+    document.getElementById('out-verdeDisc').textContent = fmtPct(verdeDisc * 100);
+    document.getElementById('out-enfermoDisc').textContent = fmtPct(enfermoDisc * 100);
+  }
 
   pesoNetoEl.textContent = `${fmt(T, 0)} Kg`;
   pesoNetoEl.className = 'value';
